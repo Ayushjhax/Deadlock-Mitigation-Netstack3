@@ -116,8 +116,12 @@ cargo new
 ```
 
 # Architecture
- ![- Deadlock](https://github.com/user-attachments/assets/6e2e2b30-8378-4544-be0f-848d457a4f53)
-![- Deadlock 2](https://github.com/user-attachments/assets/26e03fad-6eca-4540-b5f8-762b852b1d28)
+<img src="src/notes/deadlock.jpeg" width="400">
+<img src="src/notes/deadlock2.jpeg" width="400">
+<img src="src/notes/deadlock4.jpeg" width="400">
+<img src="src/notes/deadlock5.jpeg" width="400">
+<img src="src/notes/deadlock6.jpeg" width="400">
+
 
 
 
