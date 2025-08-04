@@ -24,9 +24,9 @@ macro_rules! declare_mutex_identifier {
         struct $mutex_name;
     };
 }
-
+/// This is a trait that represents the permission to claim a mutex.
 /// Some type of permission token required to claim a mutex.
-pub trait MutexPermission: 'static {}
+pub trait MutexPermission: 'static {} 
 
 impl MutexPermission for OuterMutexPermission {}
 
@@ -37,10 +37,17 @@ pub struct OuterMutexPermission(PhantomData<Rc<()>>);
 // Note: OuterMutexPermission is designed to be thread-local and not Send
 // We'll enforce this through usage patterns rather than negative trait bounds
 
+/// This is a thread-local storage for the permission token.
+/// It is used to store the permission token for the current thread.
+
 thread_local! {
     pub static MUTEX_PERMISSION_TOKEN: Cell<Option<OuterMutexPermission>>
         = Cell::new(Some(OuterMutexPermission(PhantomData)));
 }
+
+/// NestedMutexPermission: A key you get after locking a mutex, which lets you lock a mutex inside it.
+
+/// SequentialMutexPermission: A key you get after unlocking a mutex, which lets you lock the next one in a sequence.
 
 impl OuterMutexPermission {
     /// Get the thread-local mutex claiming permission. This can be called exactly once
@@ -87,6 +94,9 @@ unsafe impl<P: MutexPermission> Sync for PermissionSyncSendWrapper<P> {}
 
 /// A mutex which is compile-time guaranteed not to deadlock.
 /// Similar to the Netstack3 approach for preventing network stack deadlocks.
+
+/// This is our custom mutex. The generic type P: MutexPermission. This embeds the rule "To lock me, you need a key of type P" directly into the mutex's own type.
+
 pub struct DeadlockProofMutex<T, P: MutexPermission, I: 'static>(
     Mutex<T>,
     PhantomData<PermissionSyncSendWrapper<P>>,
@@ -108,6 +118,8 @@ impl<T, P: MutexPermission, I: 'static> DeadlockProofMutex<T, P, I> {
             .lock()
             .map(|guard| DeadlockProofMutexGuard(guard, permission, PhantomData))
     }
+
+    /// When you successfully lock the mutex, you get this Guard. It holds two things: access to the data, and the original permission token you used to get the lock.
 
     /// Acquires this mutex and provides a token for claiming nested mutexes.
     pub fn lock_for_nested(

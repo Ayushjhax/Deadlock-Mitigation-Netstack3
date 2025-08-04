@@ -9,8 +9,7 @@ use lib::{
 };
 
 fn main() {
-    println!(" Deadlock Prevention System Demo");
-    println!("==================================");
+
     println!("This demo shows compile-time deadlock prevention using Rust's type system.");
     println!("Based on the Netstack3 framework approach.\n");
 
@@ -50,8 +49,7 @@ fn get_user_input(prompt: &str) -> String {
 }
 
 fn demo_exclusive_mutexes() {
-    println!("\n Exclusive Mutexes Demo");
-    println!("========================");
+
     println!("Each thread can only hold one mutex at a time, preventing deadlock.");
     
     let mutex1 = Arc::new(DeadlockProofMutex::new(0i32, unique_type!()));
@@ -62,7 +60,8 @@ fn demo_exclusive_mutexes() {
     let c_mutex2 = Arc::clone(&mutex2);
     
     println!(" Spawning thread to modify mutexes...");
-    
+
+    //This prevents the classic deadlock scenario where two threads each hold one mutex and wait for the other
     let handle = thread::spawn(move || {
         let permission = OuterMutexPermission::get();
         
@@ -77,6 +76,16 @@ fn demo_exclusive_mutexes() {
         let mut guard2 = c_mutex2.lock(permission).unwrap();
         *guard2 = 84;
         println!("  Thread: Set mutex2 to {}", *guard2);
+
+        // This shows the simplest pattern: lock A, unlock A, lock B, unlock B. You must return the key from the first lock before you can use it on the second.
+
+        // This prevents the classic deadlock scenario where two threads each hold one mutex and wait for the other
+
+        // The permission token must be returned before acquiring another mutex
+
+        // This prevents the classic deadlock scenario where two threads each hold one mutex and wait for the other
+
+
     });
     
     handle.join().unwrap();
@@ -94,8 +103,9 @@ fn demo_exclusive_mutexes() {
 }
 
 fn demo_nested_mutexes() {
-    println!("\n Nested Mutexes Demo");
-    println!("======================");
+/// This shows the hierarchical pattern: locking A gives you a new key that is the only key that can open B.
+
+
     println!("Mutexes must be acquired in a specific nested order across all threads.");
     
     let mutex1 = Arc::new(DeadlockProofMutex::new(String::from("Layer 1"), unique_type!()));
@@ -137,13 +147,20 @@ fn demo_nested_mutexes() {
     
     // Main thread must follow the same order
     let permission = OuterMutexPermission::get();
-    let (guard1, perm1) = mutex1.lock_for_nested(permission).unwrap();
+    
+    // Lock mutex1, consuming `permission` and creating `perm1`
+
+    let (mut guard1, perm1) = mutex1.lock_for_nested(permission).unwrap();
     println!("Main: Layer 1 = {}", *guard1);
     
-    let (guard2, perm2) = mutex2.lock_for_nested(perm1).unwrap();
+    // Use `perm1` to lock mutex2, creating `perm2`
+
+    let (mut guard2, perm2) = mutex2.lock_for_nested(perm1).unwrap();
     println!("Main: Layer 2 = {}", *guard2);
-    
-    let guard3 = mutex3.lock(perm2).unwrap();
+   
+    // Use `perm2` to lock mutex3
+
+    let mut guard3 = mutex3.lock(perm2).unwrap();
     println!("Main: Layer 3 = {}", *guard3);
     
     println!(" Demo completed successfully!\n");
@@ -210,8 +227,7 @@ fn demo_sequential_mutexes() {
 }
 
 fn demo_network_stack() {
-    println!("\n Network Stack Simulation (Netstack3-inspired)");
-    println!("=================================================");
+
     println!("Simulating a network stack with layered mutex acquisition.");
     
     let stack = Arc::new(NetworkStack::new());
@@ -221,6 +237,8 @@ fn demo_network_stack() {
     
     let handle = thread::spawn(move || {
         let permission = OuterMutexPermission::get();
+
+        // This demonstrates the lock-unlock-lock pattern, enforced by the types defined in NetworkStack. You cannot lock the device_layer without first having locked and unlocked the ip_layer.
         
         // Process in network stack order: IP -> Device -> Transport
         println!("  Thread: Processing IP layer...");
