@@ -96,25 +96,19 @@ Ownership: When you call ```lock(permission)```, the ```permission``` token is m
 
 Generics and Traits: By defining ```DeadlockProofMutex<T, P: MutexPermission, I>```, we create a generic type where ```P``` is the only permission type that will satisfy the compiler for the ```lock``` method. This creates the rigid link between a specific lock and its specific key.
 
-## Instalation
+## Installation
 
-Instructions on how to get a copy of the project and run it on your local machine.
-
-### Prerequisites
-
-_A guide on how to install the tools needed for running the project._
-
-Explain the process step by step.
 
 ```bash
 git clone https://github.com/Ayushjhax/Deadlock-Mitigation-Netstack3.git 
 ```
 ```
-cd Deadlock_Prevention
+cd Deadlock-Mitigation-Netstack3
+
 ```
 
 ```
-cargo new
+cargo run
 ```
 
 # Architecture
