@@ -1,6 +1,8 @@
 # Deadlock-Mitigation Mutexes using Netstack3
 
-This crate provides a set of mutex wrappers that leverage Rust's type system to guarantee at compile time that deadlocks are impossible. The design is heavily inspired by the locking mechanisms used in Google's Fuchsia OS network stack, Netstack3.
+This crate provides a set of mutex wrappers that leverage Rust's type system to guarantee at compile time that deadlocks are impossible. The design is heavily inspired by the locking mechanisms used in Google's Fuchsia OS network stack, Netstack3 [Inspired by the talk from Joshua Liebow-Feeser
+ ](https://youtu.be/qd3x5MCUrhw?si=bqfC3jqCLQz0R4bE)
+
 
 It serves as both a powerful concurrency tool and a practical example of how to encode complex invariants into types, letting the compiler enforce correctness.
 
