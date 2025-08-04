@@ -1,0 +1,228 @@
+// Netstack3 is a Fuchsia-based network stack.
+
+// Abstract:  Rust doesn’t just support memory safety, it supports “X-safety”: The ability to teach Rust about arbitrary safety properties, only permitting X-safe code to compile. This talk will explore how this technique has been used to defend against everything from network protocol bugs to cryptographic vulnerabilities, demonstrate novel results based on Joshua’s research, and argue that if we take this aspect of Rust seriously, we can fundamentally reshape how software is written in safety-critical environments.
+
+// RFC 4614 refers to as a basic functionality for the netstack.
+
+// The netstack is a layer between the network interface and the network protocol.
+
+// The netstack is responsible for:
+
+// 1. Receiving and sending network packets.
+// 2. Routing network packets.
+// 3. Translating between different network protocols.
+
+#![feature(negative_impls)] // bah
+
+pub struct MutexPermissionToken(PhantomData<()>);
+
+impl !Send for MutexPermissionToken {}
+
+thread_local! {
+    pub static MUTEX_PERMISSION_TOKEN: Cell<Option<MutexPermissionToken>> 
+      = Cell::new(Some(MutexPermissionToken(PhantomData)));
+ }
+
+ impl<T> DeadlockProofMutex<T> {
+    fn lock(&self, permission: MutexPermissionToken) -> LockResult<DeadlockProofMutexGuard<T>> {
+      // calls through to underlying mutex.lock()
+      // wraps the result in a newtype wrapper containing the
+      // (zero-sized) MutexPermissionToken
+    }
+  }
+
+  impl<T> DeadlockProofMutexGuard<T> {
+  fn unlock(self) -> MutexPermissionToken {
+    // unlock the underlying mutex
+    // return the MutexPermissionToken
+  }
+}
+
+impl<T> DeadlockProofOuterMutex<T> {
+    fn lock(&self) -> LockResult<(DeadlockProofOuterMutexGuard<T>, MutexPermissionToken> {
+       // returns the thread's MutexPermissionToken if lock succeeds.
+    }
+  }
+  
+  impl<T> DeadlockProofOuterMutexGuard<T> {
+    fn unlock(self, token: MutexPermissionToken) {
+      // ...
+    }
+  }
+
+  
+
+struct Node<T> {
+    // INVARIANT: All values in `left` are less than `value`.
+    left: Option<Box<Node<T>>>,
+    // INVARIANT: All values in `right` are greater than `value`.
+    right: Option<Box<Node<T>>>,
+    value: T,
+   }
+   impl<T> Node<T> {
+    // Post-condition: Node’s internal field invariants hold.
+    fn new(value: T) -> Node<T> {
+    Node { left: None, right: None, value }
+    }
+    // Pre-condition: Node’s internal field invariants hold.
+    // Post-condition: Node’s internal field invariants hold.
+    fn insert(&mut self, value: T) > Option<T> { . }
+   }
+
+
+   // # Safety
+   //
+   // `Self` is thread-safe.
+   unsafe trait Send {}
+   fn spawn<F: FnOnce() + Send>(f: F) {
+    unsafe { libc :pthread_create( .) };
+   }
+
+   unsafe impl Send for u8 {}
+unsafe impl Send for u16 {}
+unsafe impl Send for u32 {}
+
+
+unsafe impl<'a, T: Send> Send
+ for &'a Mutex<T>
+{
+}
+
+#[derive(Send)]
+struct Foo<T, U>(T, U);
+// Derive-generated code
+unsafe impl<T, U> Send for Foo<T, U>
+where
+ T: Send,
+ U: Send,
+{
+}
+
+#[derive(Send)]
+struct Foo<T, U>(T, U);
+let foo: Foo<&Mutex<u8>, u16> = .;
+spawn(move | .);
+
+struct Stack {
+    ip: Mutex<IpState>,
+    device: Mutex<DeviceState>,
+   }
+
+
+   // Thread A
+stack.ip.lock();
+stack.device.lock();
+// Thread B
+stack.device.lock();
+stack.ip.lock();
+
+struct Mutex<Id, T> {
+    mtx: std :sync :Mutex<T>,
+    _marker: PhantomData<Id>,
+   }
+
+   struct Stack {
+    ip: Mutex<IpLock, IpState>,
+    device: Mutex<DeviceLock, DeviceState>,
+   }
+   enum IpLock {}
+   enum DeviceLock {}
+
+   unsafe trait LockAfter<M> {}
+unsafe trait LockBefore<M> {}
+unsafe impl<B: LockAfter<A>, A> LockBefore<B> for A {}
+
+
+macro_rules! impl_lock_after {
+    ($A:ty > $B:ty) > {
+    // SAFETY: The blanket impl will cause any cycles
+    // to result in a blanket impl conflict, and thus
+    // won’t compile.
+    unsafe impl LockAfter $A> for $B {}
+    unsafe impl<X: LockBefore $A >
+    LockAfter<X> for $B
+    {
+    }
+    };
+   }
+   impl_lock_after!(TransportLock > IpLock);
+   impl_lock_after!(IpLock > DeviceLock);
+
+
+   impl<Id, T> Mutex<Id, T> {
+    fn lock<L>(
+    &self,
+    ctx: &mut LockCtx<L>
+    ) > (MutexGuard<'_, T>, LockCtx<Id>)
+    where
+    L: LockBefore<Id>,
+    {
+    (
+    self.mtx.lock().unwrap(),
+    LockCtx(PhantomData),
+    )
+    }
+   }
+
+
+   enum Unlocked {}
+impl LockCtx<Unlocked> {
+ const UNLOCKED: LockCtx<Unlocked> = LockCtx( .);
+}
+
+struct Stack {
+    ip: Mutex<IpLock, IpState>,
+    device: Mutex<DeviceLock, DeviceState>,
+   }
+   enum IpLock {}
+   enum DeviceLock {}
+
+
+   impl_lock_after!(Unlocked > IpLock);
+impl_lock_after!(IpLock > DeviceLock);
+// Thread A
+let mut ctx = LockCtx :UNLOCKED;
+let (ip, mut ctx) = stack.ip.lock(&mut ctx);
+let (device, mut ctx) = stack.device.lock(&mut ctx);
+// Thread B
+let mut ctx = LockCtx :UNLOCKED;
+let (device, mut ctx) = stack.device.lock(&mut ctx);
+let (ip, mut ctx) = stack.ip.lock(&mut ctx);
+
+pub enum IpParseError<I: IcmpIpExt> {
+    Parse { error: ParseError },
+    ParameterProblem {
+    src_ip: I :Addr,
+    dst_ip: I :Addr,
+    code: I :ParameterProblemCode,
+    pointer: I :ParameterProblemPointer,
+    must_send_icmp: bool,
+    header_len: I :HeaderLen,
+    action: IpParseErrorAction,
+    },
+   }
+   pub enum IpParseErrorAction {
+    DiscardPacket,
+    DiscardPacketSendIcmp,
+    DiscardPacketSendIcmpNoMulticast,
+   }
+   pub enum ParseError {
+    NotSupported,
+    NotExpected,
+    Checksum,
+    Format,
+   }
+
+
+   pub enum IpParseError<I: IcmpIpExt> {
+    Parse { error: ParseError },
+    ParameterProblem {
+    src_ip: I :Addr, 
+    dst_ip: I :Addr,
+    code: I :ParameterProblemCode,
+    pointer: I :ParameterProblemPointer,
+    must_send_icmp: bool,
+    header_len: I :HeaderLen,
+    action: IpParseErrorAction,
+    },
+   }
