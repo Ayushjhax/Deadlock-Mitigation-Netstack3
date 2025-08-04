@@ -116,11 +116,12 @@ cargo new
 ```
 
 # Architecture
-<img src="src/Deadlock.jpeg" width="400">
-<img src="src/Deadlock2.jpeg" width="400">
-<img src="src/Deadlock4.jpeg" width="400">
-<img src="src/Deadlock5.jpeg" width="400">
-<img src="src/Deadlock6.jpeg" width="400">
+<img src="src/Deadlock.jpeg">
+<img src="src/Deadlock2.jpeg">
+<img src="src/Deadlock4.jpeg">
+<img src="src/Deadlock5.jpeg">
+<img src="src/Deadlock6.jpeg">
+
 
 
 ## Acknowledgment
