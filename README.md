@@ -111,6 +111,13 @@ cd Deadlock-Mitigation-Netstack3
 cargo run
 ```
 
+## Results
+<img src="notes/image.png">
+<img src="notes/image1.png">
+<img src="notes/image2.png">
+<img src="notes/image3.png">
+
+
 # Architecture
 <img src="notes/Deadlock.jpeg">
 <img src="notes/Deadlock2.jpeg">
