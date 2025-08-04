@@ -116,15 +116,13 @@ cargo new
 ```
 
 # Architecture
-<img src="src/notes/Deadlock.jpeg" width="400">
-<img src="src/notes/Deadlock2.jpeg" width="400">
-<img src="src/notes/Deadlock4.jpeg" width="400">
-<img src="src/notes/Deadlock5.jpeg" width="400">
-<img src="src/notes/Deadlock6.jpeg" width="400">
+<img src="src/Deadlock.jpeg" width="400">
+<img src="src/Deadlock2.jpeg" width="400">
+<img src="src/Deadlock4.jpeg" width="400">
+<img src="src/Deadlock5.jpeg" width="400">
+<img src="src/Deadlock6.jpeg" width="400">
 
 
-
-
-## Acknowledgments
+## Acknowledgment
 
 * [Joshua Liebow-Feeser](https://github.com/joshlf)
